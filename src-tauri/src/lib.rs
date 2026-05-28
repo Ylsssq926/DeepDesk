@@ -2,6 +2,7 @@
 //!
 //! 详细架构见 `docs/ARCHITECTURE.md`。
 
+mod account;
 mod commands;
 mod db;
 mod injector;
@@ -9,7 +10,6 @@ mod shortcuts;
 mod tray;
 mod windows;
 
-use tauri::Manager;
 use tracing_subscriber::{fmt, EnvFilter};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -36,32 +36,13 @@ pub fn run() {
             commands::get_app_version,
         ])
         .setup(|app| {
-            // 应用 vibrancy / mica（macOS / Windows）
-            #[cfg(target_os = "macos")]
-            {
-                use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = apply_vibrancy(
-                        &window,
-                        NSVisualEffectMaterial::HudWindow,
-                        None,
-                        Some(12.0),
-                    );
-                }
-            }
+            // 1. 创建主窗口（加载 chat.deepseek.com）
+            windows::init(app)?;
 
-            #[cfg(target_os = "windows")]
-            {
-                use window_vibrancy::apply_mica;
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = apply_mica(&window, Some(true));
-                }
-            }
-
-            // 初始化系统托盘
+            // 2. 初始化系统托盘
             tray::init(app)?;
 
-            // 注册全局快捷键（默认 Cmd/Ctrl+Shift+K 唤起主窗口）
+            // 3. 注册全局快捷键（默认 Cmd/Ctrl+Shift+K 唤起主窗口）
             shortcuts::init(app)?;
 
             tracing::info!("setup complete");

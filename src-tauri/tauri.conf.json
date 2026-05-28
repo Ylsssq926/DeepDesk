@@ -10,24 +10,7 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [
-      {
-        "label": "main",
-        "title": "DeepDesk · Unofficial",
-        "width": 1200,
-        "height": 800,
-        "minWidth": 800,
-        "minHeight": 600,
-        "decorations": false,
-        "transparent": true,
-        "shadow": true,
-        "center": true,
-        "resizable": true,
-        "fullscreen": false,
-        "focus": true,
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) DeepDesk/0.1.0 Chrome/131.0.0.0 Safari/537.36"
-      }
-    ],
+    "windows": [],
     "security": {
       "csp": null
     },
