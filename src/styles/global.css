@@ -1,0 +1,195 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* ——————————————————————————————————————————
+ * Tailwind v4 主题映射
+ * 把 design tokens 注册为 Tailwind 颜色 / radius / 字体
+ * —————————————————————————————————————————— */
+@theme {
+  --color-bg-base:     var(--bg-base);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-overlay:  var(--bg-overlay);
+  --color-bg-hover:    var(--bg-hover);
+  --color-bg-active:   var(--bg-active);
+
+  --color-fg-primary:   var(--fg-primary);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-tertiary:  var(--fg-tertiary);
+  --color-fg-disabled:  var(--fg-disabled);
+
+  --color-border:        var(--border-default);
+  --color-border-strong: var(--border-strong);
+
+  --color-brand:        var(--brand-primary);
+  --color-brand-hover:  var(--brand-primary-hover);
+  --color-brand-active: var(--brand-primary-active);
+  --color-brand-soft:   var(--brand-primary-soft);
+  --color-accent:       var(--brand-accent);
+  --color-accent-soft:  var(--brand-accent-soft);
+
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-danger:  var(--color-danger);
+  --color-info:    var(--color-info);
+
+  --radius-xs:    var(--radius-xs);
+  --radius-sm:    var(--radius-sm);
+  --radius-md:    var(--radius-md);
+  --radius-lg:    var(--radius-lg);
+  --radius-xl:    var(--radius-xl);
+  --radius-2xl:   var(--radius-2xl);
+
+  --font-sans:  'Geist Variable', 'HarmonyOS Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:  'Geist Mono', 'JetBrains Mono', 'Cascadia Code', Menlo, monospace;
+  --font-serif: 'LXGW WenKai', 'Source Han Serif SC', 'Songti SC', serif;
+}
+
+/* ——————————————————————————————————————————
+ * 全局重置 + 桌面感处理
+ * —————————————————————————————————————————— */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+  color: var(--fg-primary);
+  background: var(--bg-base);
+}
+
+body {
+  background: transparent; /* Tauri transparent window */
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
+}
+
+/* tabular numbers 全局开启 */
+* {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 选中色：用品牌色 alpha */
+::selection {
+  background: var(--brand-primary-soft);
+  color: var(--fg-primary);
+}
+
+/* 自定义滚动条：仅 hover 显示 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: var(--radius-full);
+  transition: background var(--duration-base);
+}
+*:hover > ::-webkit-scrollbar-thumb,
+*:hover::-webkit-scrollbar-thumb,
+:hover::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+}
+
+/* 内容区允许选中 */
+.content-region,
+.content-region * {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* 禁用图片默认拖拽 */
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+/* Tauri 拖拽区 */
+[data-tauri-drag-region] {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+[data-tauri-drag-region] button,
+[data-tauri-drag-region] a,
+[data-tauri-drag-region] input,
+[data-tauri-drag-region] [role='button'] {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+/* 焦点环：只在键盘聚焦时显示 */
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: var(--ring-width) solid var(--brand-primary);
+  outline-offset: var(--ring-offset);
+  border-radius: inherit;
+}
+
+/* 减少动效（无障碍） */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ——————————————————————————————————————————
+ * 实用类
+ * —————————————————————————————————————————— */
+
+.brand-gradient {
+  background: var(--brand-gradient);
+}
+
+.brand-gradient-text {
+  background: var(--brand-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* AI 思考时的 conic gradient 边框 — 仅在用户主动触发后显示 */
+@keyframes brand-conic-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.thinking-border {
+  position: relative;
+  isolation: isolate;
+}
+.thinking-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    var(--brand-primary),
+    var(--brand-accent),
+    var(--brand-primary)
+  );
+  animation: brand-conic-rotate 4s linear infinite;
+  opacity: 0.6;
+}
