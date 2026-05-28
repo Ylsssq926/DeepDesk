@@ -1,0 +1,59 @@
+name: ✨ Feature Request
+description: 提议一个新功能 / Propose a new feature
+labels: ["feature", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的功能建议！请先确认你的提议符合 DeepDesk 的产品哲学：
+        - **为 DeepSeek 量身定制**（DeepSeek 用户特别需要）
+        - **查漏补缺**（DeepSeek 网页没有，或做得不好）
+        - **优雅退场**（DeepSeek 上线后能优雅关闭）
+
+  - type: textarea
+    id: usecase
+    attributes:
+      label: 使用场景 / Use case
+      description: 哪类用户？什么场景下用？
+      placeholder: |
+        作为 [开发者 / 研究者 / 写作者 / ...]，我希望 ...
+        以便 ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: gap
+    attributes:
+      label: 为什么 chat.deepseek.com 当前不能解决？
+      description: |
+        说明 DeepSeek 网页版当前缺什么，或做得不够好的地方
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 你设想的解决方案 / Proposed solution
+      placeholder: 简要描述你设想的实现方式（可选）
+
+  - type: textarea
+    id: exit_strategy
+    attributes:
+      label: 退场设计 / Graceful exit
+      description: |
+        如果未来 DeepSeek 官方上线类似功能，DeepDesk 这个能力应该如何关闭？
+        本字段是产品哲学的一部分，必填。
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 自检
+      options:
+        - label: 这个建议不涉及 DOM 抓取、协议代理、绕 PoW、代登录
+          required: true
+        - label: 这个建议不涉及商业化 / 付费墙
+          required: true
+        - label: 我已搜索过现有 issue 没有重复
+          required: true

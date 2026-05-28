@@ -1,0 +1,80 @@
+name: 🐛 Bug Report
+description: 报告一个 bug / Report a bug
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你抽时间报告 bug！请尽量详细描述以便我们复现。
+        Thanks for taking the time to report. Please be as specific as possible.
+
+        ⚠️ **不要在 Issue 中报告安全漏洞**，请走 [SECURITY.md](../SECURITY.md) 的私密渠道。
+
+  - type: input
+    id: version
+    attributes:
+      label: DeepDesk version
+      placeholder: e.g. v0.1.0-alpha (Settings → About)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 平台 / Platform
+      multiple: true
+      options:
+        - Windows 10
+        - Windows 11
+        - macOS Intel
+        - macOS Apple Silicon
+        - Linux (Ubuntu)
+        - Linux (Other)
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      placeholder: |
+        1. 打开 DeepDesk
+        2. 点击 ...
+        3. 看到 ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为 / Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为 / Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / Logs (optional)
+      description: |
+        Settings → Diagnostics → Open log folder
+        把相关日志片段贴在这里
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 自检 / Self-check
+      options:
+        - label: 我已搜索过现有 issue 没有重复
+          required: true
+        - label: 这不是 chat.deepseek.com 自身的问题
+          required: true
+        - label: 我使用的是从官方 Releases 下载的版本（非 fork / 未修改）
+          required: true

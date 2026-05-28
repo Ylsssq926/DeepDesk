@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/Ylsssq926/DeepDesk/discussions
+    about: 提问、想法、show-and-tell 请去 Discussions 而不是 Issues。
+  - name: 🔒 安全漏洞报告
+    url: https://github.com/Ylsssq926/DeepDesk/security/advisories/new
+    about: 不要在公开 issue 中报告安全问题。请走 GitHub Security Advisories。

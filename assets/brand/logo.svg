@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!--
+    DeepDesk 占位图标（蓝青白渐变 D 字母）
+    这是一个临时的视觉占位，正式版本将由设计师重新设计。
+  -->
+  <defs>
+    <linearGradient id="deepdesk-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="oklch(0.55 0.15 215)" />
+      <stop offset="100%" stop-color="oklch(0.72 0.13 200)" />
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#deepdesk-grad)" />
+  <path
+    d="M 88 80 L 128 80 Q 176 80 176 128 Q 176 176 128 176 L 88 176 Z M 112 104 L 112 152 L 128 152 Q 152 152 152 128 Q 152 104 128 104 Z"
+    fill="white"
+    fill-rule="evenodd"
+  />
+  <!-- 右下角小圆点：表明 unofficial -->
+  <circle cx="200" cy="200" r="14" fill="white" opacity="0.95" />
+  <circle cx="200" cy="200" r="6" fill="oklch(0.55 0.15 215)" />
+</svg>
