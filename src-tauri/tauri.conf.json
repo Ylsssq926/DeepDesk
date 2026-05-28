@@ -17,7 +17,7 @@
     "trayIcon": {
       "iconPath": "icons/icon.png",
       "iconAsTemplate": true,
-      "menuOnLeftClick": false,
+      "showMenuOnLeftClick": false,
       "tooltip": "DeepDesk · Unofficial"
     }
   },
@@ -30,12 +30,6 @@
     "longDescription": "DeepDesk is an unofficial, community-built desktop client for chat.deepseek.com. Not affiliated with DeepSeek.",
     "publisher": "DeepDesk Contributors",
     "homepage": "https://github.com/Ylsssq926/DeepDesk",
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ]
+    "icon": []
   }
 }

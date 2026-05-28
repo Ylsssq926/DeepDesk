@@ -25,14 +25,14 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .item(&quit)
         .build()?;
 
-    // menu_on_left_click 仅在 macOS / Windows 上可用，
+    // show_menu_on_left_click 仅在 macOS / Windows 上可用，
     // Linux 走系统托盘协议（GTK / appindicator），左键行为由桌面环境决定。
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     let builder = TrayIconBuilder::with_id("main")
         .tooltip("DeepDesk · Unofficial")
         .menu(&menu)
         .icon(app.default_window_icon().unwrap().clone())
-        .menu_on_left_click(false);
+        .show_menu_on_left_click(false);
 
     #[cfg(target_os = "linux")]
     let builder = TrayIconBuilder::with_id("main")

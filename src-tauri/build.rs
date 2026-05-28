@@ -98,9 +98,33 @@ fn main() {
         println!("cargo:warning=icons/icon.ico not found, wrote 1x1 transparent placeholder. Run `pnpm tauri icon assets/brand/logo.svg` to generate real icons.");
     }
 
+    // 1x1 transparent PNG used by trayIcon.iconPath; generate_context! validates
+    // the file is a real PNG, so a zero-byte stub won't do.
+    let png_path = icons_dir.join("icon.png");
+    if !png_path.exists() {
+        // Minimal 1x1 red RGB PNG (67 bytes), known-good byte stream that
+        // every PNG decoder accepts. Used purely as a placeholder so cargo
+        // check / clippy can succeed before `pnpm tauri icon` produces real
+        // assets.
+        const PLACEHOLDER_PNG: [u8; 67] = [
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+            0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR length+type
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // width=1, height=1
+            0x08, 0x02, 0x00, 0x00, 0x00, // bit_depth=8, color_type=2 (RGB)
+            0x90, 0x77, 0x53, 0xDE, // IHDR CRC
+            0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT length=12
+            0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00, 0x00, 0x00, 0x03, 0x00, 0x01, // zlib data
+            0x5B, 0xB6, 0xEE, 0x56, // IDAT CRC
+            0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, // IEND length+type
+            0xAE, 0x42, 0x60, 0x82, // IEND CRC
+        ];
+        fs::write(&png_path, PLACEHOLDER_PNG)
+            .expect("failed to create placeholder icons/icon.png");
+        println!("cargo:warning=icons/icon.png not found, wrote 1x1 placeholder. Run `pnpm tauri icon assets/brand/logo.svg` to generate real icons.");
+    }
+
     for placeholder in [
         "icon.icns",
-        "icon.png",
         "32x32.png",
         "128x128.png",
         "128x128@2x.png",
