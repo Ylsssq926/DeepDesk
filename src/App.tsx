@@ -24,7 +24,7 @@ export default function App() {
           </p>
 
           <div className="text-2xs text-fg-tertiary border-t border-border pt-4">
-            v0.1.0-alpha · 骨架阶段
+            v0.1.0-alpha · 骨架阶段 · Components ready: 12
             <br />
             后续将逐步搭载 chat.deepseek.com WebView、注入引擎、对话二脑等模块
           </div>

@@ -1,0 +1,132 @@
+/**
+ * UI 组件动画 Keyframes
+ *
+ * 为 shadcn/ui 组件提供进入/退出动画。
+ * 使用 DeepDesk design tokens 中的 duration 和 easing 变量。
+ *
+ * 命名约定：所有 keyframe 都以 `dd-` 前缀开头（DeepDesk 缩写），
+ * 避免与未来可能引入的 tw-animate-css 等第三方库冲突。
+ *
+ * 引入方式：在 src/main.tsx 中显式 import './styles/animations.css'。
+ */
+
+/* Dialog / Modal 动画 */
+@keyframes dd-dialog-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes dd-dialog-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+}
+
+/* Fade 动画（用于 backdrop） */
+@keyframes dd-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dd-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Tooltip 动画 */
+@keyframes dd-tooltip-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dd-tooltip-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+/* Popover / DropdownMenu 动画 */
+@keyframes dd-popover-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dd-popover-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* Sheet 滑入/滑出动画 */
+@keyframes dd-slide-in-from-top {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes dd-slide-out-to-top {
+  from { transform: translateY(0); }
+  to { transform: translateY(-100%); }
+}
+
+@keyframes dd-slide-in-from-bottom {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes dd-slide-out-to-bottom {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+@keyframes dd-slide-in-from-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes dd-slide-out-to-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes dd-slide-in-from-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes dd-slide-out-to-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}

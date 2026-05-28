@@ -39,6 +39,27 @@
   --radius-xl:    var(--radius-xl);
   --radius-2xl:   var(--radius-2xl);
 
+  /* 字号：值来自 tokens.css 中的 --text-* */
+  --text-2xs: var(--text-2xs);
+  --text-xs:  var(--text-xs);
+  --text-sm:  var(--text-sm);
+  --text-base: var(--text-base);
+  --text-md:  var(--text-md);
+  --text-lg:  var(--text-lg);
+  --text-xl:  var(--text-xl);
+  --text-2xl: var(--text-2xl);
+
+  /* 字重：基于 Variable Font，不要走默认的 400/500/600 */
+  --font-weight-regular:  var(--weight-regular);
+  --font-weight-medium:   var(--weight-medium);
+  --font-weight-semibold: var(--weight-semibold);
+  --font-weight-bold:     var(--weight-bold);
+
+  /* 行高：与 tokens.css 一致 */
+  --leading-tight: var(--leading-tight);
+  --leading-base:  var(--leading-base);
+  --leading-loose: var(--leading-loose);
+
   --font-sans:  'Geist Variable', 'HarmonyOS Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono:  'Geist Mono', 'JetBrains Mono', 'Cascadia Code', Menlo, monospace;
   --font-serif: 'LXGW WenKai', 'Source Han Serif SC', 'Songti SC', serif;
