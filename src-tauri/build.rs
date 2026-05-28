@@ -102,11 +102,11 @@ fn main() {
     // the file is a real PNG, so a zero-byte stub won't do.
     let png_path = icons_dir.join("icon.png");
     if !png_path.exists() {
-        // Minimal 1x1 red RGB PNG (67 bytes), known-good byte stream that
+        // Minimal 1x1 red RGB PNG (69 bytes), known-good byte stream that
         // every PNG decoder accepts. Used purely as a placeholder so cargo
         // check / clippy can succeed before `pnpm tauri icon` produces real
         // assets.
-        const PLACEHOLDER_PNG: [u8; 67] = [
+        const PLACEHOLDER_PNG: [u8; 69] = [
             0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
             0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR length+type
             0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // width=1, height=1
