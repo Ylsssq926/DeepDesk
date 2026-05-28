@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DeepDesk</title>
+    <meta name="description" content="DeepDesk · Unofficial desktop client for chat.deepseek.com" />
+    <!-- 防首帧白闪：直接给 body 应用主题底色 -->
+    <style>
+      html, body { background: #161618; color: #f0f0f2; margin: 0; }
+      html.light, html.light body { background: #fcfcfd; color: #2a2c32; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

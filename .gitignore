@@ -1,0 +1,42 @@
+# Build artifacts
+dist/
+dist-injected/
+target/
+*.log
+node_modules/
+
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+src-tauri/Cargo.lock
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.iml
+.DS_Store
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Backups
+*.bak
+*.backup
+
+# Tests
+coverage/
+.nyc_output/
+
+# Misc
+.pnpm-store/
+.cache/
+*.tsbuildinfo
