@@ -1,0 +1,44 @@
+DeepDesk
+Copyright © 2026 Ylsssq926 (https://github.com/Ylsssq926) and DeepDesk Contributors.
+
+This product includes software developed by the DeepDesk project
+(https://github.com/Ylsssq926/DeepDesk).
+
+================================================================================
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the Free
+Software Foundation, version 3 of the License (the "AGPL-3.0" license).
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+details. You should have received a copy of the GNU Affero General Public
+License along with this program in the LICENSE file. If not, see
+<https://www.gnu.org/licenses/agpl-3.0.html>.
+
+================================================================================
+
+Trademark Notice
+----------------
+The name "DeepDesk" and the DeepDesk logo are trademarks of the DeepDesk
+project. They are NOT licensed under the AGPL-3.0 license that covers the
+source code. See TRADEMARK.md for the brand usage policy. Any forks of this
+project that you redistribute must use a different name and logo.
+
+DeepSeek Disclaimer
+-------------------
+DeepDesk is an unofficial third-party desktop client for chat.deepseek.com.
+This project is independently developed and is not affiliated with, endorsed
+by, sponsored by, or otherwise approved by Hangzhou DeepSeek Artificial
+Intelligence Co., Ltd. or any of its affiliates. "DeepSeek", the DeepSeek
+logo, and all related marks are trademarks of their respective owners. Their
+use here is solely for the descriptive purpose of indicating compatibility,
+under the doctrine of nominative fair use. All other trademarks are the
+property of their respective owners.
+
+Third-Party Components
+----------------------
+This product bundles or depends upon third-party software components. See
+THIRD_PARTY_NOTICES.md (generated at build time) for the full list of
+dependencies and their respective licenses.
