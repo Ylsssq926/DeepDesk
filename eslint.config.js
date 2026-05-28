@@ -23,6 +23,10 @@ export default tseslint.config(
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
       '@typescript-eslint/consistent-type-imports': 'warn',
+      // 禁止 console，注入脚本和 build 脚本通过 eslint-disable-next-line 显式放行
+      'no-console': 'warn',
+      // 禁用 var，强制 let/const
+      'no-var': 'error',
     },
   },
 );

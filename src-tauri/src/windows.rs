@@ -15,7 +15,7 @@
 
 use crate::account;
 use crate::injector;
-use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{WebviewUrl, WebviewWindowBuilder};
 
 /// DeepSeek Chat 的 URL。
 const DEEPSEEK_CHAT_URL: &str = "https://chat.deepseek.com";
@@ -71,13 +71,14 @@ fn create_main_window(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Er
 
     // 平台特定窗口装饰配置
     // macOS: 使用原生装饰 + overlay title bar style（traffic light 内嵌）
+    // 注：transparent(true) 需要 Tauri `macos-private-api` feature，会牵连
+    // 上架审核与代码签名，MVP 暂不开启；macOS 视觉效果由 vibrancy 负责。
     #[cfg(target_os = "macos")]
     {
         builder = builder
             .decorations(true)
             .title_bar_style(tauri::TitleBarStyle::Overlay)
             .hidden_title(true)
-            .transparent(true)
             .shadow(true);
     }
 
@@ -85,13 +86,13 @@ fn create_main_window(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Er
     // TODO（V0.2）：通过注入脚本叠加自定义 titlebar
     #[cfg(target_os = "windows")]
     {
-        builder = builder.decorations(true).shadow(true).transparent(false);
+        builder = builder.decorations(true).shadow(true);
     }
 
     // Linux: 原生装饰栏
     #[cfg(target_os = "linux")]
     {
-        builder = builder.decorations(true).transparent(false);
+        builder = builder.decorations(true);
     }
 
     let window = builder.build()?;
