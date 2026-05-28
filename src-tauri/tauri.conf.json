@@ -1,0 +1,58 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "DeepDesk",
+  "version": "0.1.0",
+  "identifier": "app.deepdesk.unofficial",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "DeepDesk · Unofficial",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "decorations": false,
+        "transparent": true,
+        "shadow": true,
+        "center": true,
+        "resizable": true,
+        "fullscreen": false,
+        "focus": true,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) DeepDesk/0.1.0 Chrome/131.0.0.0 Safari/537.36"
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "trayIcon": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true,
+      "menuOnLeftClick": false,
+      "tooltip": "DeepDesk · Unofficial"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Productivity",
+    "copyright": "© 2026 Ylsssq926 and DeepDesk Contributors. Licensed under AGPL-3.0.",
+    "shortDescription": "Unofficial desktop client for chat.deepseek.com",
+    "longDescription": "DeepDesk is an unofficial, community-built desktop client for chat.deepseek.com. Not affiliated with DeepSeek.",
+    "publisher": "DeepDesk Contributors",
+    "homepage": "https://github.com/Ylsssq926/DeepDesk",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}
