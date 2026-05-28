@@ -7,6 +7,7 @@
 //!   - 自动迁移机制
 //!   - 可选 SQLCipher 加密（V1-14）
 
+#[allow(dead_code)]
 pub fn placeholder() {
     // intentionally empty — module skeleton
 }
