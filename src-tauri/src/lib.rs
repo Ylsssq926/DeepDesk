@@ -16,12 +16,17 @@ use tracing_subscriber::{fmt, EnvFilter};
 pub fn run() {
     // 初始化结构化日志：可通过 RUST_LOG 环境变量调级
     fmt()
-        .with_env_filter(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")))
+        .with_env_filter(
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
+        )
         .with_target(false)
         .compact()
         .init();
 
-    tracing::info!("DeepDesk starting up — version {}", env!("CARGO_PKG_VERSION"));
+    tracing::info!(
+        "DeepDesk starting up — version {}",
+        env!("CARGO_PKG_VERSION")
+    );
 
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())

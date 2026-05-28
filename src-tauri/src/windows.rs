@@ -85,18 +85,13 @@ fn create_main_window(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Er
     // TODO（V0.2）：通过注入脚本叠加自定义 titlebar
     #[cfg(target_os = "windows")]
     {
-        builder = builder
-            .decorations(true)
-            .shadow(true)
-            .transparent(false);
+        builder = builder.decorations(true).shadow(true).transparent(false);
     }
 
     // Linux: 原生装饰栏
     #[cfg(target_os = "linux")]
     {
-        builder = builder
-            .decorations(true)
-            .transparent(false);
+        builder = builder.decorations(true).transparent(false);
     }
 
     let window = builder.build()?;
@@ -113,12 +108,7 @@ fn apply_vibrancy(window: &tauri::WebviewWindow) {
     #[cfg(target_os = "macos")]
     {
         use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
-        let _ = apply_vibrancy(
-            window,
-            NSVisualEffectMaterial::HudWindow,
-            None,
-            Some(12.0),
-        );
+        let _ = apply_vibrancy(window, NSVisualEffectMaterial::HudWindow, None, Some(12.0));
         tracing::info!("applied macOS vibrancy effect");
     }
 

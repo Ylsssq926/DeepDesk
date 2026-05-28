@@ -16,7 +16,8 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle = app.handle().clone();
 
     // 简化菜单：先支持 显示/隐藏主窗口 + 退出
-    let toggle_window = MenuItemBuilder::with_id("toggle_window", "显示 / 隐藏主窗口").build(app)?;
+    let toggle_window =
+        MenuItemBuilder::with_id("toggle_window", "显示 / 隐藏主窗口").build(app)?;
     let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
     let menu = MenuBuilder::new(app)
         .item(&toggle_window)

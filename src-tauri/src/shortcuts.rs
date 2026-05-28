@@ -22,11 +22,12 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 
     let toggle_shortcut = Shortcut::new(Some(modifiers), Code::KeyK);
 
-    app.global_shortcut().on_shortcut(toggle_shortcut, move |_app, _shortcut, event| {
-        if event.state == ShortcutState::Pressed {
-            toggle_main_window(&app_handle);
-        }
-    })?;
+    app.global_shortcut()
+        .on_shortcut(toggle_shortcut, move |_app, _shortcut, event| {
+            if event.state == ShortcutState::Pressed {
+                toggle_main_window(&app_handle);
+            }
+        })?;
 
     tracing::info!("registered global shortcut: {:?}", toggle_shortcut);
     Ok(())

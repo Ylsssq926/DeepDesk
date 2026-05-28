@@ -54,5 +54,8 @@ pub fn get_inject_script(_account_id: &str) -> String {
 fn include_inject_script() -> &'static str {
     // 先尝试读取 dist-injected/bundle.js
     // 如果文件不存在，build.rs 会创建一个空文件确保编译通过
-    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/dist-injected/bundle.js"))
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/dist-injected/bundle.js"
+    ))
 }
