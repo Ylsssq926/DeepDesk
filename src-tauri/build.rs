@@ -94,12 +94,17 @@ fn main() {
             // AND mask (4 bytes, all zeros = use color directly)
             0x00, 0x00, 0x00, 0x00,
         ];
-        fs::write(&ico_path, PLACEHOLDER_ICO)
-            .expect("failed to create placeholder icons/icon.ico");
+        fs::write(&ico_path, PLACEHOLDER_ICO).expect("failed to create placeholder icons/icon.ico");
         println!("cargo:warning=icons/icon.ico not found, wrote 1x1 transparent placeholder. Run `pnpm tauri icon assets/brand/logo.svg` to generate real icons.");
     }
 
-    for placeholder in ["icon.icns", "icon.png", "32x32.png", "128x128.png", "128x128@2x.png"] {
+    for placeholder in [
+        "icon.icns",
+        "icon.png",
+        "32x32.png",
+        "128x128.png",
+        "128x128@2x.png",
+    ] {
         let p = icons_dir.join(placeholder);
         if !p.exists() {
             // 这些图标只在 bundle 阶段被读取，cargo check / clippy 不会触达，

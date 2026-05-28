@@ -25,17 +25,20 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .item(&quit)
         .build()?;
 
-    let mut builder = TrayIconBuilder::with_id("main")
-        .tooltip("DeepDesk · Unofficial")
-        .menu(&menu)
-        .icon(app.default_window_icon().unwrap().clone());
-
     // menu_on_left_click 仅在 macOS / Windows 上可用，
     // Linux 走系统托盘协议（GTK / appindicator），左键行为由桌面环境决定。
     #[cfg(any(target_os = "macos", target_os = "windows"))]
-    {
-        builder = builder.menu_on_left_click(false);
-    }
+    let builder = TrayIconBuilder::with_id("main")
+        .tooltip("DeepDesk · Unofficial")
+        .menu(&menu)
+        .icon(app.default_window_icon().unwrap().clone())
+        .menu_on_left_click(false);
+
+    #[cfg(target_os = "linux")]
+    let builder = TrayIconBuilder::with_id("main")
+        .tooltip("DeepDesk · Unofficial")
+        .menu(&menu)
+        .icon(app.default_window_icon().unwrap().clone());
 
     let _tray = builder
         .on_menu_event(move |app, event| handle_menu(app, event.id().as_ref()))

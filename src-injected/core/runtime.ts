@@ -131,8 +131,9 @@ export const runtime = new RuntimeImpl();
 /** 类型导出，便于 enhancer 注解参数。 */
 export type Runtime = RuntimeImpl;
 
-// 由 esbuild 注入；这里给 TS 类型补丁
+// 由 esbuild 注入；这里给 TS 类型补丁。
+// 注：`declare global { var }` 是 TypeScript 声明全局变量的标准写法，
+// no-var 规则不适用于声明空间，因此无需 eslint-disable。
 declare global {
-  // eslint-disable-next-line no-var
   var __BUILD_VERSION__: string;
 }
