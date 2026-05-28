@@ -113,22 +113,17 @@ fn main() {
             0x08, 0x02, 0x00, 0x00, 0x00, // bit_depth=8, color_type=2 (RGB)
             0x90, 0x77, 0x53, 0xDE, // IHDR CRC
             0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT length=12
-            0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00, 0x00, 0x00, 0x03, 0x00, 0x01, // zlib data
+            0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00, 0x00, 0x00, 0x03, 0x00,
+            0x01, // zlib data
             0x5B, 0xB6, 0xEE, 0x56, // IDAT CRC
             0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, // IEND length+type
             0xAE, 0x42, 0x60, 0x82, // IEND CRC
         ];
-        fs::write(&png_path, PLACEHOLDER_PNG)
-            .expect("failed to create placeholder icons/icon.png");
+        fs::write(&png_path, PLACEHOLDER_PNG).expect("failed to create placeholder icons/icon.png");
         println!("cargo:warning=icons/icon.png not found, wrote 1x1 placeholder. Run `pnpm tauri icon assets/brand/logo.svg` to generate real icons.");
     }
 
-    for placeholder in [
-        "icon.icns",
-        "32x32.png",
-        "128x128.png",
-        "128x128@2x.png",
-    ] {
+    for placeholder in ["icon.icns", "32x32.png", "128x128.png", "128x128@2x.png"] {
         let p = icons_dir.join(placeholder);
         if !p.exists() {
             // 这些图标只在 bundle 阶段被读取，cargo check / clippy 不会触达，
