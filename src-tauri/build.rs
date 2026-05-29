@@ -277,6 +277,10 @@ fn oklch_args_to_hex(args: &str) -> Option<String> {
 }
 
 /// OKLCH (L 0..1, C 0..0.4, H deg) → 8-bit sRGB 三元组。
+///
+/// 矩阵系数取自 Björn Ottosson 的 OKLab 参考实现，刻意保留高位有效数字以
+/// 贴近原始常量；f32 会自然截断到可表示精度，故抑制 excessive_precision。
+#[allow(clippy::excessive_precision)]
 fn oklch_to_srgb8(l: f32, c: f32, h_deg: f32) -> (u8, u8, u8) {
     let h_rad = h_deg.to_radians();
     let a = c * h_rad.cos();
