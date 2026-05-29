@@ -1,6 +1,6 @@
 {
   "name": "deepdesk",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0",
   "description": "Unofficial desktop client for chat.deepseek.com — tailor-made for DeepSeek users.",
   "private": true,
   "type": "module",
