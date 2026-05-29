@@ -76,22 +76,26 @@ jobs:
               '完整说明见 [README](https://github.com/Ylsssq926/DeepDesk#readme)。',
             ].join('\n');
 
-            // 复用已存在的同名 draft（重跑场景）并刷新标题/正文，否则新建。
+            // 复用任意已存在的同 tag release（draft 或已发布皆可），仅刷新
+            // 标题/正文，保留其原 draft 状态，避免重跑时产生重复 / 孤儿 release。
             const existing = await github.rest.repos.listReleases({
               owner: context.repo.owner,
               repo: context.repo.repo,
               per_page: 100,
             });
-            const found = existing.data.find((r) => r.tag_name === tag && r.draft);
+            const found = existing.data.find((r) => r.tag_name === tag);
             if (found) {
-              core.info(`Reusing existing draft release ${found.id} for ${tag}; refreshing notes`);
+              core.info(
+                `Reusing existing release ${found.id} for ${tag} (draft=${found.draft}); refreshing notes`,
+              );
               await github.rest.repos.updateRelease({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 release_id: found.id,
                 name: releaseName,
                 body,
-                draft: true,
+                // 保留原状态：已发布的不要被打回 draft，draft 的保持 draft。
+                draft: found.draft,
                 prerelease: true,
               });
               return found.id;
