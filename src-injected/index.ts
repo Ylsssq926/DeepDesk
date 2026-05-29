@@ -35,6 +35,7 @@ import { mermaidEnhancer } from './enhancers/mermaid';
 import { slashMenuEnhancer } from './enhancers/slash-menu';
 import { thinkingEnhancer } from './enhancers/thinking';
 import { autoRetryEnhancer } from './enhancers/auto-retry';
+import { debugIndicatorEnhancer } from './enhancers/debug-indicator';
 
 import type { Enhancer } from './types/feature';
 import type { InjectReadyPayload, InjectRelevantSettings } from './types/messages';
@@ -64,7 +65,47 @@ const ENHANCERS: readonly Enhancer[] = [
   slashMenuEnhancer,
   thinkingEnhancer,
   autoRetryEnhancer,
+  debugIndicatorEnhancer,
 ];
+
+/** 仅在 chat.deepseek.com 上挂载会触碰 DOM 的逻辑（如 enhancer 与 observer）。 */
+function isTargetHost(): boolean {
+  try {
+    return window.location.hostname === 'chat.deepseek.com';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 在 console 打印一条带样式的激活 banner，作为给开发者 / 用户的可视确认信号。
+ *
+ * 设计：
+ *   - 三段式：彩色品牌徽章 + 深色版本号 + 描述文字
+ *   - 后跟两条灰度斜体说明，强调「不修改请求」「增强默认禁用」
+ *   - 即使在生产环境也保留：开销可忽略，对页面行为无影响
+ */
+function printActivationBanner(version: string, host: string): void {
+  /* eslint-disable no-console */
+  console.log(
+    '%c DeepDesk %c v' + version + ' %c 注入脚本已激活',
+    'background:linear-gradient(90deg,oklch(0.55 0.15 215),oklch(0.72 0.13 200));color:#fff;padding:2px 6px;border-radius:3px 0 0 3px;font-weight:600',
+    'background:#222;color:#fff;padding:2px 6px;font-weight:500',
+    'color:oklch(0.55 0.15 215);font-weight:500;padding:2px 6px',
+  );
+  console.log('%c → 仅加载，不修改 chat.deepseek.com 任何请求', 'color:#888;font-style:italic');
+  console.log(
+    '%c → 增强模块（mermaid / immersive / 等）默认全部禁用，可在设置中按需启用',
+    'color:#888;font-style:italic',
+  );
+  if (host !== 'chat.deepseek.com') {
+    console.log(
+      '%c → 当前 host=' + host + '，非目标域名，不挂载 DOM 增强',
+      'color:#c97a2b;font-style:italic',
+    );
+  }
+  /* eslint-enable no-console */
+}
 
 /** 启动入口：自调用，但所有副作用通过 try/catch 隔离。 */
 (function bootstrap(): void {
@@ -83,6 +124,16 @@ const ENHANCERS: readonly Enhancer[] = [
     snapshot: () => runtime.snapshot(),
     flags: () => snapshot(),
   };
+
+  // 2.5 打印激活 banner（开发 / 调试时直观确认注入工作；不影响功能）
+  const host = (() => {
+    try {
+      return window.location.hostname;
+    } catch {
+      return '';
+    }
+  })();
+  printActivationBanner(runtime.version, host);
 
   // 3. 立即安装 fetch / XHR 拦截器（必须早于页面 JS）
   safeCall('inject:bootstrap:fetch', () => installFetchInterceptor(), undefined);
@@ -105,8 +156,19 @@ const ENHANCERS: readonly Enhancer[] = [
         await wireSettingsSync();
       }
 
-      scheduleObserverStart();
-      scheduleEnhancers();
+      // 仅在目标域名 (chat.deepseek.com) 上挂载会触碰 DOM 的逻辑。
+      // 兜底防御：理论上 Tauri webview 永远只加载该域名，但即便意外被加载到
+      // 其他页面（如登录跳转中转页），也不应该污染该页面的 DOM。
+      if (isTargetHost()) {
+        scheduleObserverStart();
+        scheduleEnhancers();
+      } else {
+        // 把所有 enhancer 标记为 disabled，便于 snapshot() 诊断
+        for (const enh of ENHANCERS) {
+          runtime.setStatus(enh.name, 'disabled');
+        }
+        log.info(`non-target host (${host}); skip observer & enhancers`);
+      }
 
       // 末尾：emit inject:ready
       const payload: InjectReadyPayload = {

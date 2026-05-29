@@ -27,6 +27,7 @@ export type EnhancerName =
   | 'slash-menu'
   | 'thinking'
   | 'auto-retry'
+  | 'debug-indicator'
   | 'fetch-interceptor'
   | 'xhr-interceptor';
 

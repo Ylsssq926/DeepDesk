@@ -12,10 +12,11 @@
   },
   "scripts": {
     "dev": "vite",
+    "prebuild": "pnpm build:inject",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "tauri:dev": "tauri dev",
+    "tauri:dev": "pnpm build:inject && tauri dev",
     "tauri:build": "tauri build",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
@@ -25,7 +26,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "build:inject": "tsx scripts/build-inject.ts",
-    "build:inject:watch": "tsx scripts/build-inject.ts --watch"
+    "build:inject:watch": "tsx scripts/build-inject.ts --watch",
+    "dev:inject": "tsx scripts/build-inject.ts --watch"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.7",
