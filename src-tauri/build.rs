@@ -178,7 +178,8 @@ fn build_ico(rendered: &BTreeMap<u32, Vec<u8>>) -> Result<Vec<u8>, String> {
         dir.add_entry(entry);
     }
     let mut buf = Vec::new();
-    dir.write(&mut buf).map_err(|e| format!("ico write failed: {e}"))?;
+    dir.write(&mut buf)
+        .map_err(|e| format!("ico write failed: {e}"))?;
     Ok(buf)
 }
 
@@ -197,7 +198,9 @@ fn build_icns(rendered: &BTreeMap<u32, Vec<u8>>) -> Result<Vec<u8>, String> {
             .map_err(|e| format!("icns add_icon({size}) failed: {e}"))?;
     }
     let mut buf = Vec::new();
-    family.write(&mut buf).map_err(|e| format!("icns write failed: {e}"))?;
+    family
+        .write(&mut buf)
+        .map_err(|e| format!("icns write failed: {e}"))?;
     Ok(buf)
 }
 
