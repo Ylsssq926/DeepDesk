@@ -51,11 +51,14 @@ pub fn get_inject_script(_account_id: &str) -> String {
 ///
 /// 技术说明：`include_str!` 在文件不存在时会导致编译失败，
 /// 因此我们提供一个空的 fallback 文件，并在 build.rs 中确保路径存在。
+///
+/// 路径说明：注入脚本由 `pnpm build:inject`（scripts/build-inject.ts）生成到
+/// **项目根**的 `dist-injected/bundle.js`，而本 crate 的 manifest dir 是
+/// `src-tauri/`，因此需要 `../dist-injected/bundle.js` 上溯一级。build.rs 的
+/// 兜底创建逻辑使用同一路径，三者必须保持一致，否则会嵌入空脚本。
 fn include_inject_script() -> &'static str {
-    // 先尝试读取 dist-injected/bundle.js
-    // 如果文件不存在，build.rs 会创建一个空文件确保编译通过
     include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/dist-injected/bundle.js"
+        "/../dist-injected/bundle.js"
     ))
 }

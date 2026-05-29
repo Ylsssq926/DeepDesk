@@ -5,24 +5,31 @@ use std::path::{Path, PathBuf};
 
 fn main() {
     // ------------------------------------------------------------------
-    // 兜底 1：dist-injected/bundle.js
-    // include_str! 在文件不存在时会编译失败。开发阶段该文件可能尚未生成
-    // （需 `pnpm build:inject`），此处创建空文件兜底。
+    // 兜底 1：../dist-injected/bundle.js（项目根，非 src-tauri 下）
+    //
+    // 注入脚本由 `pnpm build:inject`（scripts/build-inject.ts）生成到**项目根**
+    // 的 dist-injected/bundle.js。injector.rs 的 include_str! 也指向
+    // `../dist-injected/bundle.js`。三者路径必须一致，否则会嵌入空脚本导致
+    // 注入完全失效。
+    //
+    // include_str! 在文件不存在时会编译失败，开发阶段该文件可能尚未生成
+    // （需先跑 `pnpm build:inject`），此处仅在缺失时创建空文件兜底，绝不覆盖
+    // 已生成的真实脚本。
     // ------------------------------------------------------------------
-    let inject_dir = Path::new("dist-injected");
+    let inject_dir = Path::new("../dist-injected");
     let inject_file = inject_dir.join("bundle.js");
 
     if !inject_dir.exists() {
-        fs::create_dir_all(inject_dir).expect("failed to create dist-injected directory");
+        fs::create_dir_all(inject_dir).expect("failed to create ../dist-injected directory");
     }
 
     if !inject_file.exists() {
         fs::write(&inject_file, "").expect("failed to create empty bundle.js");
-        println!("cargo:warning=dist-injected/bundle.js not found, created empty placeholder. Run `pnpm build:inject` to generate the real inject script.");
+        println!("cargo:warning=../dist-injected/bundle.js not found, created empty placeholder. Run `pnpm build:inject` to generate the real inject script.");
     }
 
     // 当注入脚本变化时重新编译
-    println!("cargo:rerun-if-changed=dist-injected/bundle.js");
+    println!("cargo:rerun-if-changed=../dist-injected/bundle.js");
 
     // ------------------------------------------------------------------
     // 兜底 2：../dist/index.html

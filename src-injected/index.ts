@@ -109,6 +109,47 @@ function printActivationBanner(version: string, host: string): void {
   /* eslint-enable no-console */
 }
 
+/**
+ * ⚠️ 临时（alpha 验证期）注入自检横幅。
+ *
+ * 在页面顶部插入一条固定横幅，直接证明「注入脚本确实被执行了」。它**刻意**
+ * 不依赖项目的任何子系统（bridge / feature-flag / enhancer / observer / load
+ * 时机），只用最朴素的 DOM API，这样无论其他环节是否出错，只要 bundle 被注入
+ * 就一定可见。注入能力确认无误后删除本函数及其调用。
+ */
+function showInjectionSelfCheckBanner(version: string): void {
+  const mount = (): void => {
+    if (!document.body) return;
+    if (document.getElementById('deepdesk-selfcheck')) return;
+    const bar = document.createElement('div');
+    bar.id = 'deepdesk-selfcheck';
+    bar.textContent = `✅ DeepDesk 注入已生效 · v${version} · 此横幅仅用于验证，正式版将移除`;
+    bar.style.cssText = [
+      'position:fixed',
+      'top:0',
+      'left:0',
+      'right:0',
+      'z-index:2147483647',
+      'background:linear-gradient(90deg,#1f7fd6,#25b3c0)',
+      'color:#fff',
+      'font:600 13px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif',
+      'text-align:center',
+      'padding:6px 12px',
+      'box-shadow:0 2px 8px rgba(0,0,0,0.2)',
+      'cursor:pointer',
+    ].join(';');
+    // 点击即关闭，避免长期遮挡
+    bar.addEventListener('click', () => bar.remove());
+    document.body.appendChild(bar);
+  };
+
+  if (document.body) {
+    mount();
+  } else {
+    document.addEventListener('DOMContentLoaded', mount, { once: true });
+  }
+}
+
 /** 启动入口：自调用，但所有副作用通过 try/catch 隔离。 */
 (function bootstrap(): void {
   // 1. 防重复加载
@@ -136,6 +177,12 @@ function printActivationBanner(version: string, host: string): void {
     }
   })();
   printActivationBanner(runtime.version, host);
+
+  // 2.6 ⚠️ 临时（alpha 验证期）：注入自检横幅。
+  // 不依赖 bridge / flag / enhancer / observer / load 时机——只要注入脚本被
+  // 执行，页面顶部就会出现一条醒目横幅。用于确诊注入链路是否真正生效。
+  // 注入能力验证完成后删除本段。
+  showInjectionSelfCheckBanner(runtime.version);
 
   // 3. 立即安装 fetch / XHR 拦截器（必须早于页面 JS）
   safeCall('inject:bootstrap:fetch', () => installFetchInterceptor(), undefined);
