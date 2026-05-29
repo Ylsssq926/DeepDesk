@@ -1,0 +1,110 @@
+name: Release
+
+# 推送形如 v0.1.0 / v0.1.0-alpha.0 的 tag 时触发，
+# 在三平台构建安装包并创建一个 draft GitHub Release。
+# 也支持手动触发（workflow_dispatch）以便演练。
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '要创建/更新的 release tag（如 v0.1.0-alpha.0）'
+        required: true
+        default: 'v0.0.0-dev'
+
+permissions:
+  contents: write
+
+jobs:
+  publish-tauri:
+    name: Build (${{ matrix.label }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            label: macOS (Apple Silicon)
+            args: '--target aarch64-apple-darwin'
+          - platform: macos-latest
+            label: macOS (Intel)
+            args: '--target x86_64-apple-darwin'
+          - platform: ubuntu-22.04
+            label: Linux (x86_64)
+            args: ''
+          - platform: windows-latest
+            label: Windows (x86_64)
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # 仅 macOS runner 需要这两个 target；其他平台留空以略微加速。
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          # 不同 target 共享一个 workspace 目录会互相覆盖缓存，按平台+args 区分。
+          key: ${{ matrix.platform }}-${{ matrix.args }}
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl wget file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Install frontend dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build injection bundle
+        run: pnpm build:inject
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # tauri-action 会把 __VERSION__ 替换为 tauri.conf.json 里的 app 版本。
+          tagName: ${{ github.event.inputs.tag || github.ref_name }}
+          releaseName: 'DeepDesk __VERSION__'
+          releaseBody: |
+            DeepDesk __VERSION__ — 非官方 chat.deepseek.com 桌面客户端。
+
+            > ⚠️ 这是 alpha 阶段的预发布版本，功能仍在快速迭代。
+
+            ## 安装
+            从下方 Assets 下载对应平台的安装包：
+            - **Windows**：`.msi` 或 `.exe`
+            - **macOS**：`.dmg`（Apple Silicon 选 aarch64，Intel 选 x64）
+            - **Linux**：`.AppImage` / `.deb` / `.rpm`
+
+            ## 重要声明
+            DeepDesk 是社区驱动的非官方项目，与 DeepSeek AI 无任何隶属关系。
+            登录与数据完全走 DeepSeek 官方系统，本应用不收集任何用户数据。
+
+            完整说明见 [README](https://github.com/Ylsssq926/DeepDesk#readme)。
+          releaseDraft: true
+          prerelease: true
+          args: ${{ matrix.args }}
