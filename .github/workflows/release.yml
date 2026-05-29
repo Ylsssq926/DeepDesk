@@ -43,22 +43,40 @@ jobs:
             const body = [
               `DeepDesk ${tag} — 非官方 chat.deepseek.com 桌面客户端。`,
               '',
-              '> ⚠️ 这是 alpha 阶段的预发布版本，功能仍在快速迭代。',
+              '> ⚠️ 这是 alpha 阶段的预发布版本，功能仍在快速迭代，可能存在不稳定。',
+              '',
+              '## 这一版能做什么',
+              '- 独立桌面窗口加载 chat.deepseek.com，登录态本地持久化',
+              '- 系统托盘常驻：呼出窗口 / 打开官网 / 打开仓库 / 关于 / 退出',
+              '- 全局快捷键 `Ctrl/Cmd + Shift + K`：在任意程序中把 DeepDesk 呼到最前',
+              '- 断网时显示友好的离线提示页，而非浏览器报错',
+              '- 三平台原生安装包，带应用图标',
               '',
               '## 安装',
-              '从下方 Assets 下载对应平台的安装包：',
-              '- **Windows**：`.msi` 或 `.exe`',
-              '- **macOS**：`.dmg`（Apple Silicon 选 aarch64，Intel 选 x64）',
-              '- **Linux**：`.AppImage` / `.deb` / `.rpm`',
+              '从下方 **Assets** 下载对应平台的安装包：',
+              '',
+              '| 平台 | 文件 |',
+              '| --- | --- |',
+              '| Windows | `DeepDesk_*_x64-setup.exe`（推荐）或 `*_x64_en-US.msi` |',
+              '| macOS (Apple Silicon) | `DeepDesk_*_aarch64.dmg` |',
+              '| macOS (Intel) | `DeepDesk_*_x64.dmg` |',
+              '| Linux | `*_amd64.AppImage` / `*_amd64.deb` / `*.x86_64.rpm` |',
+              '',
+              '### 首次打开提示（重要）',
+              '本版本尚未做代码签名，系统可能拦截，这是 alpha 版的正常现象：',
+              '- **Windows**：SmartScreen 提示「已保护你的电脑」→ 点「更多信息」→「仍要运行」。',
+              '- **macOS**：提示「无法打开，因为来自身份不明的开发者」→ 在「系统设置 › 隐私与安全性」点「仍要打开」，或右键应用选「打开」。',
+              '- **Linux (AppImage)**：`chmod +x DeepDesk_*.AppImage` 后运行。',
               '',
               '## 重要声明',
               'DeepDesk 是社区驱动的非官方项目，与 DeepSeek AI 无任何隶属关系。',
-              '登录与数据完全走 DeepSeek 官方系统，本应用不收集任何用户数据。',
+              '登录与数据完全走 DeepSeek 官方系统，本应用不收集、不上传任何用户数据，',
+              '也不修改、拦截或伪造任何网络请求。',
               '',
               '完整说明见 [README](https://github.com/Ylsssq926/DeepDesk#readme)。',
             ].join('\n');
 
-            // 复用已存在的同名 draft（重跑场景），否则新建。
+            // 复用已存在的同名 draft（重跑场景）并刷新标题/正文，否则新建。
             const existing = await github.rest.repos.listReleases({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -66,7 +84,16 @@ jobs:
             });
             const found = existing.data.find((r) => r.tag_name === tag && r.draft);
             if (found) {
-              core.info(`Reusing existing draft release ${found.id} for ${tag}`);
+              core.info(`Reusing existing draft release ${found.id} for ${tag}; refreshing notes`);
+              await github.rest.repos.updateRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: found.id,
+                name: releaseName,
+                body,
+                draft: true,
+                prerelease: true,
+              });
               return found.id;
             }
 
