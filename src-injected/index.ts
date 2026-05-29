@@ -36,6 +36,7 @@ import { slashMenuEnhancer } from './enhancers/slash-menu';
 import { thinkingEnhancer } from './enhancers/thinking';
 import { autoRetryEnhancer } from './enhancers/auto-retry';
 import { debugIndicatorEnhancer } from './enhancers/debug-indicator';
+import { probeEnhancer } from './enhancers/probe';
 
 import type { Enhancer } from './types/feature';
 import type { InjectReadyPayload, InjectRelevantSettings } from './types/messages';
@@ -66,6 +67,7 @@ const ENHANCERS: readonly Enhancer[] = [
   thinkingEnhancer,
   autoRetryEnhancer,
   debugIndicatorEnhancer,
+  probeEnhancer,
 ];
 
 /** 仅在 chat.deepseek.com 上挂载会触碰 DOM 的逻辑（如 enhancer 与 observer）。 */

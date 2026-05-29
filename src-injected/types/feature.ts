@@ -28,6 +28,7 @@ export type EnhancerName =
   | 'thinking'
   | 'auto-retry'
   | 'debug-indicator'
+  | 'probe'
   | 'fetch-interceptor'
   | 'xhr-interceptor';
 
