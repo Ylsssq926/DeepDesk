@@ -14,14 +14,26 @@
 //! User-Agent 中明确标识 DeepDesk 客户端身份。
 
 use crate::account;
+use crate::error_page;
 use crate::injector;
-use tauri::{WebviewUrl, WebviewWindowBuilder};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
+use std::time::Duration;
+use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
 /// DeepSeek Chat 的 URL。
 const DEEPSEEK_CHAT_URL: &str = "https://chat.deepseek.com";
 
 /// User-Agent 字符串。与 tauri.conf.json 中保持一致。
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) DeepDesk/0.1.0 Chrome/131.0.0.0 Safari/537.36";
+
+/// 主窗口加载 chat.deepseek.com 的超时阈值。
+///
+/// 一旦 `PageLoadEvent::Started` 触发后超过此时长仍未收到 `Finished`，
+/// 认为加载失败，切换到本地兜底页。
+///
+/// 取值偏保守（15 秒），避免在国内网络短暂抖动时误伤慢速但仍可用的连接。
+const PAGE_LOAD_TIMEOUT: Duration = Duration::from_secs(15);
 
 /// 初始化所有应用窗口。
 ///
@@ -49,6 +61,18 @@ fn create_main_window(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Er
     // 获取注入脚本
     let inject_script = injector::get_inject_script(account::DEFAULT_ACCOUNT_ID);
 
+    // 加载 watchdog：每次发生导航（Started）会自增 generation；Finished 时与
+    // 当前 generation 比较，匹配则成功。窗口构建后 spawn 一个后台任务在
+    // PAGE_LOAD_TIMEOUT 之后回查：若 generation 仍是 Started 时记录的值且
+    // 状态仍未完成，则视为加载失败，导航到兜底 data: URL。
+    //
+    // 用 Arc<AtomicU64> 同时承担：
+    //   - 低 63 位：当前 generation 序号
+    //   - 最高位（GEN_FINISHED_BIT）：当前 generation 是否已 Finished
+    // 这样 Started/Finished/超时回调可以无锁互通。
+    let load_state = Arc::new(AtomicU64::new(0));
+    let load_state_for_handler = load_state.clone();
+
     // 构建主窗口 — 基础配置
     let mut builder = WebviewWindowBuilder::new(
         app,
@@ -62,7 +86,10 @@ fn create_main_window(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Er
     .resizable(true)
     .focused(true)
     .user_agent(USER_AGENT)
-    .data_directory(data_dir);
+    .data_directory(data_dir)
+    .on_page_load(move |window, payload| {
+        on_page_load_event(&window, payload, &load_state_for_handler);
+    });
 
     // 注入脚本（即使为空也安全）
     if !inject_script.is_empty() {
@@ -101,6 +128,96 @@ fn create_main_window(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Er
     apply_vibrancy(&window);
 
     Ok(())
+}
+
+/// `load_state` 的最高位：若被设置则表示当前 generation 已经 Finished。
+const GEN_FINISHED_BIT: u64 = 1 << 63;
+/// 提取 generation 序号（去掉 finished 标志位）。
+const GEN_MASK: u64 = !GEN_FINISHED_BIT;
+
+/// 处理 `on_page_load` 回调。
+///
+/// 关键不变量：
+/// - `Started` → 新 generation = 旧 generation + 1（不带 finished bit）
+/// - `Finished` → 在当前 generation 上置 finished bit（仅当当前导航是
+///   chat.deepseek.com 主页时才视为成功；否则仍触发 watchdog 兜底）
+/// - 每次 Started 后 spawn 一个超时任务：到期若 generation 未变且未 Finished
+///   就执行兜底导航
+fn on_page_load_event(
+    window: &tauri::WebviewWindow,
+    payload: tauri::webview::PageLoadPayload<'_>,
+    load_state: &Arc<AtomicU64>,
+) {
+    use tauri::webview::PageLoadEvent;
+
+    match payload.event() {
+        PageLoadEvent::Started => {
+            let url = payload.url().to_string();
+
+            // data: URL 是兜底页本身，不应触发 watchdog（避免无限套娃）
+            if url.starts_with("data:") {
+                tracing::debug!("page-load Started for fallback page, watchdog skipped");
+                return;
+            }
+
+            // 自增 generation，清掉 finished bit
+            let prev = load_state.load(Ordering::Acquire);
+            let new_gen = (prev & GEN_MASK).wrapping_add(1) & GEN_MASK;
+            load_state.store(new_gen, Ordering::Release);
+            tracing::info!("page-load Started [gen={}] {}", new_gen, url);
+
+            // spawn watchdog
+            let app_handle = window.app_handle().clone();
+            let load_state = load_state.clone();
+            tauri::async_runtime::spawn(async move {
+                tokio::time::sleep(PAGE_LOAD_TIMEOUT).await;
+                let state = load_state.load(Ordering::Acquire);
+                let still_pending =
+                    (state & GEN_MASK) == new_gen && (state & GEN_FINISHED_BIT) == 0;
+                if !still_pending {
+                    return;
+                }
+                tracing::warn!(
+                    "page-load watchdog fired [gen={}] — navigating to fallback page",
+                    new_gen
+                );
+                if let Some(window) = app_handle.get_webview_window("main") {
+                    navigate_to_fallback(&window, "加载超时（15 秒未完成）");
+                }
+            });
+        }
+        PageLoadEvent::Finished => {
+            let url = payload.url().to_string();
+
+            // 如果 Finished 的是 data: 兜底页，不计入「成功」—— 用户在兜底页
+            // 上点击重试时仍然要走完整的 Started → 超时检查流程。
+            if url.starts_with("data:") {
+                tracing::debug!("page-load Finished on fallback page");
+                return;
+            }
+
+            let prev = load_state.fetch_or(GEN_FINISHED_BIT, Ordering::AcqRel);
+            tracing::info!("page-load Finished [gen={}] {}", prev & GEN_MASK, url);
+        }
+    }
+}
+
+/// 把窗口导航到兜底 data: URL。
+///
+/// 错误仅记录日志而不向上抛出 —— 此函数在异步回调里调用，调用方无处可处理。
+fn navigate_to_fallback(window: &tauri::WebviewWindow, reason: &str) {
+    let data_url = error_page::build_error_data_url(reason);
+    match data_url.parse() {
+        Ok(parsed) => {
+            if let Err(e) = window.navigate(parsed) {
+                tracing::error!("failed to navigate to fallback page: {e}");
+            }
+        }
+        Err(e) => {
+            // 理论不可能，data: URL 由我们自己构造
+            tracing::error!("failed to parse fallback data URL: {e}");
+        }
+    }
 }
 
 /// 应用窗口 vibrancy / mica 效果。

@@ -5,6 +5,7 @@
 mod account;
 mod commands;
 mod db;
+mod error_page;
 mod injector;
 mod shortcuts;
 mod tray;
