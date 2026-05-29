@@ -1,156 +1,243 @@
-# DeepDesk · 开发环境搭建
+# DeepDesk · 开发环境搭建指南
 
-> 当前你已经看到的项目骨架是只用 Node 工具链就完成的部分。
-> 要真正 `pnpm tauri:dev` 跑起来，还需要装 **Rust + Tauri CLI**（首次安装约 10-30 分钟）。
-> 本文档列出从 0 到能 `tauri dev` 启动的完整步骤。
+本文档帮助你从零搭建 DeepDesk 开发环境，5 步内启动完整桌面应用。
 
 ---
 
-## 一、依赖清单
+## 系统要求
 
-| 工具 | 最低版本 | 安装方式 | 你当前的状态 |
-|------|---------|---------|-------------|
-| Git | 2.x | [git-scm.com](https://git-scm.com/) | ✅ 已装（v2.50.1）|
-| Node.js | ≥ 20 | [nodejs.org](https://nodejs.org/) | ✅ 已装（v24.12）|
-| pnpm | ≥ 9 | `npm i -g pnpm` | ❌ 未装 |
-| Rust toolchain | ≥ 1.78 stable | [rustup.rs](https://rustup.rs/) | ❌ 未装 |
-| Tauri CLI 2.x | latest | `cargo install tauri-cli --version "^2.0.0"` | ❌ 未装 |
-| 平台依赖 | — | 见下方 §2 | — |
+### Windows
 
----
-
-## 二、Windows 开发环境一键安装
-
-打开 **PowerShell（管理员）** 跑：
-
-```powershell
-# 1. pnpm
-npm install -g pnpm
-
-# 2. Rust（rustup-init 会装 Visual Studio Build Tools 提示）
-Invoke-WebRequest https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
-.\rustup-init.exe -y --default-toolchain stable
-# 安装完成后重启 PowerShell 让 PATH 生效
-
-# 3. WebView2（Win11 自带；Win10 需检查）
-# https://developer.microsoft.com/microsoft-edge/webview2/
-# 多数 Win10 已经预装，命令行检查：
-Get-AppxPackage *WebView*
-```
-
-如果 rustup 提示需要 Visual Studio Build Tools，按提示安装"使用 C++ 的桌面开发"工作负载即可。
-
----
-
-## 三、macOS / Linux 开发环境
+- **操作系统**：Windows 10 1809+ 或 Windows 11
+- **WebView2 Runtime**：Win 11 已内置；Win 10 多数已预装，如缺失请从 [Microsoft 官网](https://developer.microsoft.com/microsoft-edge/webview2/) 下载
+- **Visual Studio Build Tools**：安装"使用 C++ 的桌面开发"工作负载
+- **Rust**：1.78+（通过 [rustup](https://rustup.rs/) 安装）
+- **Node.js**：20+
+- **pnpm**：9+
 
 ### macOS
 
-```bash
-# 1. Xcode Command Line Tools（约 1GB）
-xcode-select --install
-
-# 2. Rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# 3. pnpm
-npm install -g pnpm
-```
+- **操作系统**：macOS 12 Monterey+
+- **Xcode Command Line Tools**：`xcode-select --install`
+- **Rust**：1.78+
+- **Node.js**：20+
+- **pnpm**：9+
 
 ### Linux (Ubuntu / Debian)
 
-```bash
-# Tauri 系统依赖
-sudo apt update
-sudo apt install -y \
-  libwebkit2gtk-4.1-dev build-essential curl wget file \
-  libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+- **系统依赖**（与 CI 一致）：
 
-# Rust
+```bash
+sudo apt-get update
+sudo apt-get install -y \
+  libwebkit2gtk-4.1-dev \
+  build-essential \
+  curl wget file \
+  libxdo-dev \
+  libssl-dev \
+  libayatana-appindicator3-dev \
+  librsvg2-dev
+```
+
+- **Rust**：1.78+
+- **Node.js**：20+
+- **pnpm**：9+
+
+### 通用工具安装
+
+```bash
+# 安装 Rust（所有平台）
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# pnpm
+# 启用 pnpm（推荐方式）
+corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+# 或者通过 npm 安装
 npm install -g pnpm
 ```
 
-完整跨平台依赖见 [Tauri Prerequisites](https://v2.tauri.app/start/prerequisites/)。
+> 💡 完整跨平台依赖清单见 [Tauri Prerequisites](https://v2.tauri.app/start/prerequisites/)。
 
 ---
 
-## 四、首次启动 DeepDesk
+## 首次安装与启动
 
 ```bash
-# 1. 安装前端依赖（约 2-5 分钟）
+git clone https://github.com/Ylsssq926/DeepDesk.git
+cd DeepDesk
 pnpm install
-
-# 2. 编译注入脚本（监听模式）
-pnpm build:inject:watch &
-
-# 3. 启动 Tauri 开发模式（首次会编译 Rust，5-15 分钟）
 pnpm tauri:dev
 ```
 
-**预期看到**：
-- 一个无边框窗口弹出
-- 标题栏显示 "DeepDesk · Unofficial"
-- 主区域居中显示 "DeepDesk" 文字与版本说明
-- 系统托盘出现一个 DeepDesk 图标（可右键菜单）
-- 按 `Cmd/Ctrl+Shift+K` 可以隐藏 / 显示窗口
+> ⚠️ 首次运行 `pnpm tauri:dev` 会编译整个 Rust 项目，耗时约 5-15 分钟（取决于 CPU）。后续增量编译约 5-30 秒。
 
-> 这是当前骨架版本能验证的所有能力。下一阶段会接入 chat.deepseek.com WebView。
+**预期看到**：
+
+- DeepDesk 主窗口打开，加载 chat.deepseek.com 登录页
+- 任务栏 / Dock 出现 DeepDesk 图标
+- 系统托盘出现 DeepDesk 图标（可右键打开菜单）
+- 按 `Ctrl+Shift+K`（Windows/Linux）或 `Cmd+Shift+K`（macOS）切换窗口可见性
 
 ---
 
-## 五、生产构建
+## 开发流程
+
+| 命令 | 用途 |
+|------|------|
+| `pnpm tauri:dev` | 启动完整桌面应用（自动构建注入脚本 + Rust 后端 + React 前端） |
+| `pnpm dev` | 仅启动 Vite 开发服务器（用于 React shell 独立预览，不含 Tauri） |
+| `pnpm build:inject` | 单独构建注入脚本（输出到 `dist-injected/bundle.js`） |
+| `pnpm build:inject:watch` | 监听模式构建注入脚本 |
+| `pnpm lint` | ESLint 代码检查 |
+| `pnpm typecheck` | TypeScript 类型检查 |
+| `pnpm format:check` | Prettier 格式检查 |
+
+---
+
+## 打包发布
 
 ```bash
 pnpm tauri:build
 ```
 
-输出：
-- Windows: `src-tauri/target/release/bundle/msi/*.msi` 与 `nsis/*.exe`
-- macOS: `src-tauri/target/release/bundle/dmg/*.dmg`
-- Linux: `src-tauri/target/release/bundle/{deb,rpm,appimage}/*`
+输出位于 `src-tauri/target/release/bundle/`：
+
+| 平台 | 产物 |
+|------|------|
+| Windows | `msi/*.msi` 与 `nsis/*.exe` 安装器 |
+| macOS | `dmg/*.dmg` 与 `macos/*.app` |
+| Linux | `deb/*.deb` / `appimage/*.AppImage` / `rpm/*.rpm` |
 
 ---
 
-## 六、常见问题
+## 故障排查
 
-### 1. `pnpm install` 提示 ENOSPC / 权限错误（Windows）
+### "WebView2 Runtime not found"（Windows）
 
-通常是 OneDrive 同步把 `node_modules` 锁住了。把项目移出 OneDrive 目录即可。
+Windows 10 部分版本未预装 WebView2。从 [Microsoft 官网](https://developer.microsoft.com/microsoft-edge/webview2/) 下载 Evergreen Bootstrapper 安装即可。
 
-### 2. `pnpm tauri:dev` 卡在 "Compiling..." 很久
+### "linker `cc` not found"（Linux）
 
-首次 Rust 编译确实需要 5-15 分钟（依赖你的 CPU）。后续增量编译会快到 5-30 秒。
+缺少编译工具链：
 
-### 3. macOS 报 "DeepDesk.app cannot be opened because it is from an unidentified developer"
+```bash
+sudo apt-get install build-essential
+```
 
-未签名的开发版会触发，临时方案：右键 → 打开。生产版需要 Apple Developer 签名（详见 `docs/LICENSE-STRATEGY.md` §7.2）。
+### "webkit2gtk not found"（Linux）
 
-### 4. Linux 上托盘图标不显示
+缺少 WebKitGTK 开发库：
+
+```bash
+sudo apt-get install libwebkit2gtk-4.1-dev
+```
+
+### 注入脚本不生效
+
+检查 `dist-injected/bundle.js` 是否存在。如果不存在，手动运行：
+
+```bash
+pnpm build:inject
+```
+
+然后重启 `pnpm tauri:dev`。
+
+### 图标显示为空白
+
+`build.rs` 会自动从 `assets/brand/logo.svg` 渲染图标。如果渲染失败，检查编译输出中的 `cargo:warning` 信息。确保 `assets/brand/logo.svg` 文件存在且为有效 SVG。
+
+### `pnpm tauri:dev` 卡在 "Compiling..." 很久
+
+首次 Rust 编译确实需要 5-15 分钟。后续增量编译会快到 5-30 秒。如果非首次仍然很慢，尝试清理缓存：
+
+```bash
+cargo clean --manifest-path src-tauri/Cargo.toml
+```
+
+### macOS 报 "cannot be opened because it is from an unidentified developer"
+
+开发版未签名会触发 Gatekeeper。临时方案：右键应用 → 打开。
+
+### Linux 托盘图标不显示
 
 GNOME 默认不带托盘支持，需安装 [AppIndicator 扩展](https://extensions.gnome.org/extension/615/appindicator-support/)。
 
-### 5. 希望用 fnm/Volta 等 Node 版本管理器
+### `pnpm install` 提示权限错误（Windows）
 
-完全 OK，用你顺手的工具即可。`package.json` 中 `engines.node` 是 `>=20`，任何符合的版本都行。
-
----
-
-## 七、推荐的 IDE 配置
-
-VS Code：
-- [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
-- [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode)
-- [Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
-- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
-- [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+通常是 OneDrive 同步锁住了 `node_modules`。把项目移出 OneDrive 同步目录即可。
 
 ---
 
-## 八、有问题？
+## 目录结构
 
-- 看 [CONTRIBUTING.md](./CONTRIBUTING.md) 中的 Development setup 章节
-- 开 GitHub Issue 标 `[setup]`
-- 安全问题走 [SECURITY.md](./SECURITY.md) 的私密渠道
+```
+DeepDesk/
+├── src/                  → React 前端（增强 UI、设置窗口、路由）
+├── src-injected/         → 注入脚本源码（enhancers、interceptors）
+├── src-tauri/            → Rust 后端
+│   ├── src/
+│   │   ├── main.rs       → 入口
+│   │   ├── lib.rs        → Tauri 应用配置（plugin / setup 链）
+│   │   ├── windows.rs    → 窗口管理（主窗口加载 chat.deepseek.com）
+│   │   ├── tray.rs       → 系统托盘菜单
+│   │   ├── shortcuts.rs  → 全局快捷键
+│   │   ├── injector.rs   → 注入脚本加载
+│   │   ├── error_page.rs → 加载失败兜底页
+│   │   ├── account.rs    → 账户数据目录隔离
+│   │   ├── db.rs         → SQLite 数据层（骨架）
+│   │   └── commands.rs   → IPC 命令
+│   ├── build.rs          → 编译期从 logo.svg 渲染图标
+│   └── Cargo.toml
+├── assets/brand/         → 品牌资产（logo.svg）
+├── scripts/              → 构建脚本（注入脚本打包等）
+├── docs/                 → 项目文档（PRD、架构、UI 规范、ADR）
+└── package.json
+```
+
+---
+
+## 如何添加 enhancer / 扩展模块
+
+注入脚本采用模块化 enhancer 架构。每个 enhancer 是一个独立模块，可单独启用/禁用。
+
+详细的 enhancer 开发指南与 IPC 通信协议见 [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)。
+
+---
+
+## 提交前检查清单
+
+在提交 PR 前，请确保以下检查全部通过：
+
+```bash
+# 前端
+pnpm lint
+pnpm typecheck
+
+# Rust
+cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+
+# 注入脚本
+pnpm build:inject
+```
+
+> 💡 CI 会在三个平台（Windows / macOS / Linux）上运行以上检查。本地通过不代表 CI 一定通过，但能覆盖绝大多数问题。
+
+---
+
+## 推荐 IDE 配置
+
+VS Code 推荐扩展：
+
+- [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) — Rust 语言支持
+- [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) — Tauri 开发工具
+- [Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss) — 样式提示
+- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) — 代码检查
+- [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) — 格式化
+
+---
+
+## 有问题？
+
+- 开 [GitHub Issue](https://github.com/Ylsssq926/DeepDesk/issues) 并标注 `[setup]`
+- 安全问题请走 [SECURITY.md](./SECURITY.md) 的私密渠道
