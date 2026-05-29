@@ -64,8 +64,10 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
                 ..
             } = event
             {
+                // 左键单击托盘图标：把窗口呼出到前台（不做隐藏切换，避免“窗口消失”困惑）。
+                // 需要隐藏窗口时使用菜单里的“显示 / 隐藏主窗口”。
                 let app_handle = tray.app_handle();
-                toggle_main_window(app_handle);
+                summon_main_window(app_handle);
             }
         })
         .build(app)?;
@@ -90,6 +92,22 @@ fn handle_menu(app: &AppHandle, id: &str) {
     }
 }
 
+/// 把主窗口拉到最前并聚焦（显示 + 取消最小化 + 抢占前台）。
+/// 与全局快捷键的“呼出”行为一致：只显示不隐藏。
+fn summon_main_window(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        if !window.is_visible().unwrap_or(true) {
+            let _ = window.show();
+        }
+        if window.is_minimized().unwrap_or(false) {
+            let _ = window.unminimize();
+        }
+        let _ = window.set_focus();
+    }
+}
+
+/// 显示 / 隐藏主窗口切换。仅供托盘菜单“显示 / 隐藏主窗口”项使用——
+/// 用户在此处是有意识地要隐藏窗口，因此保留 toggle 语义。
 fn toggle_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         match window.is_visible() {
