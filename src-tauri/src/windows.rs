@@ -27,43 +27,6 @@ const DEEPSEEK_CHAT_URL: &str = "https://chat.deepseek.com";
 /// User-Agent 字符串。与 tauri.conf.json 中保持一致。
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) DeepDesk/0.1.0 Chrome/131.0.0.0 Safari/537.36";
 
-/// ⚠️ 临时（alpha 注入诊断）：硬编码自检脚本。
-///
-/// 不依赖任何 bundle 内容。只要 Tauri 在 chat.deepseek.com 上执行了
-/// initialization_script，页面顶部就出现红色诊断条，并报告 bundle 是否执行。
-/// 用于判定"注入完全没生效"还是"bundle 内部出错"。诊断完成后删除。
-const INJECT_DIAGNOSTIC_SCRIPT: &str = r#"
-(function () {
-  try {
-    var mount = function () {
-      try {
-        if (!document.body) { return; }
-        if (document.getElementById('deepdesk-diag')) { return; }
-        var bar = document.createElement('div');
-        bar.id = 'deepdesk-diag';
-        var bundleRan = !!(window.__DEEPSEEK_DESKTOP__);
-        bar.textContent = '🔴 DeepDesk 注入诊断：Tauri initialization_script 已执行'
-          + ' · bundle ' + (bundleRan ? '已运行' : '未运行/出错')
-          + ' · 点击关闭';
-        bar.style.cssText = [
-          'position:fixed','top:0','left:0','right:0','z-index:2147483647',
-          'background:#d9342b','color:#fff',
-          'font:600 13px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif',
-          'text-align:center','padding:6px 12px','cursor:pointer'
-        ].join(';');
-        bar.addEventListener('click', function () { bar.remove(); });
-        document.body.appendChild(bar);
-      } catch (e) {}
-    };
-    if (document.body) { mount(); }
-    else { document.addEventListener('DOMContentLoaded', mount); }
-    // 兜底：页面 SPA 渲染较晚时，延迟再尝试挂一次
-    setTimeout(mount, 1500);
-    setTimeout(mount, 4000);
-  } catch (e) {}
-})();
-"#;
-
 /// 主窗口加载 chat.deepseek.com 的超时阈值。
 ///
 /// 一旦 `PageLoadEvent::Started` 触发后超过此时长仍未收到 `Finished`，
@@ -128,13 +91,6 @@ fn create_main_window(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Er
         on_page_load_event(&window, payload, &load_state_for_handler);
     });
 
-    // ⚠️ 临时（alpha 注入诊断）：一段不依赖 bundle 的硬编码自检脚本。
-    // 目的：隔离"Tauri 注入机制是否工作"与"bundle 内部是否出错"。
-    // 只要 Tauri 在远程页面执行了 initialization_script，页面顶部就会出现一条
-    // 红色诊断条；条上还会报告 bundle 是否已执行（window.__DEEPSEEK_DESKTOP__）。
-    // 诊断完成后删除本段。
-    builder = builder.initialization_script(INJECT_DIAGNOSTIC_SCRIPT);
-
     // 注入脚本（即使为空也安全）
     if !inject_script.is_empty() {
         builder = builder.initialization_script(&inject_script);
@@ -153,11 +109,13 @@ fn create_main_window(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Er
             .shadow(true);
     }
 
-    // Windows: 原生装饰栏，M-01 阶段先简单可用
-    // TODO（V0.2）：通过注入脚本叠加自定义 titlebar
+    // Windows: 原生亮色标题栏（现代简约，与亮色网页协调；不用 mica 深色效果）
     #[cfg(target_os = "windows")]
     {
-        builder = builder.decorations(true).shadow(true);
+        builder = builder
+            .decorations(true)
+            .shadow(true)
+            .theme(Some(tauri::Theme::Light));
     }
 
     // Linux: 原生装饰栏
@@ -264,22 +222,27 @@ fn navigate_to_fallback(window: &tauri::WebviewWindow, reason: &str) {
     }
 }
 
-/// 应用窗口 vibrancy / mica 效果。
+/// 应用窗口视觉效果。
+///
+/// 设计目标：现代、简约、亮色，与 chat.deepseek.com 的亮色网页协调。
 #[allow(unused_variables)]
 fn apply_vibrancy(window: &tauri::WebviewWindow) {
     #[cfg(target_os = "macos")]
     {
         use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
-        let _ = apply_vibrancy(window, NSVisualEffectMaterial::HudWindow, None, Some(12.0));
-        tracing::info!("applied macOS vibrancy effect");
+        // macOS 用浅色 vibrancy 材质（ContentBackground），贴合亮色网页
+        let _ = apply_vibrancy(
+            window,
+            NSVisualEffectMaterial::ContentBackground,
+            None,
+            None,
+        );
+        tracing::info!("applied macOS vibrancy (content background)");
     }
 
-    #[cfg(target_os = "windows")]
-    {
-        use window_vibrancy::apply_mica;
-        let _ = apply_mica(window, Some(true));
-        tracing::info!("applied Windows mica effect");
-    }
+    // Windows：不使用 mica（旧版 apply_mica(Some(true)) 会产生深色半透明标题栏，
+    // 即用户反馈的“黑框”）。改为干净的原生亮色标题栏（见 create_main_window 的
+    // theme(Light) 设置），更现代、跨 Win10/11 一致。
 }
 
 /// 创建设置窗口（加载本地 React dist 的 /settings 路由）。

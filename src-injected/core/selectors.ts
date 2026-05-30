@@ -90,6 +90,8 @@ const SELECTORS: Readonly<Record<SelectorName, readonly string[]>> = {
     'pre[data-language="mermaid"] > code',
   ],
   thinkingBlock: [
+    '.ds-think-content',
+    '[class*="ds-think"]',
     '[class*="thinking"]',
     'div[class*="reasoning"]',
     '[class*="chain-of-thought"]',

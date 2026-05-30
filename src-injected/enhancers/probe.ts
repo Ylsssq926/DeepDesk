@@ -52,9 +52,10 @@ const SHADOW_ID = 'probe';
 const log = createLogger(`enhancer:${NAME}`);
 registerFlag(NAME, false);
 
-// ⚠️ alpha 验证期强制开启（主窗口 URL 写死、release 关 devtools，用户无入口设置
-// ?deepdesk-probe=1）。注入能力验证完成后改回默认禁用 + 仅 shouldActivate。
-const PROBE_FORCE_ON = true;
+// 探针默认关闭，正式包不显示。需要诊断时通过 URL `?deepdesk-probe=1` 或
+// localStorage `__DEEPDESK_PROBE__='1'` 开启（shouldActivate 判断）。
+// 注入能力已验证通过，故不再强制开启。
+const PROBE_FORCE_ON = false;
 
 // ====================================================================
 // DOM 锚点定义：复用 core/selectors.ts 的语义名
