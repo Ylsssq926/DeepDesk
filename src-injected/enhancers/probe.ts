@@ -111,6 +111,74 @@ function findFirst(
   return null;
 }
 
+/** 生成一个元素的简短特征描述（用于诊断报告，不读业务文本）。 */
+function describeEl(el: Element): string {
+  const tag = el.tagName.toLowerCase();
+  const aria = el.getAttribute('aria-label') ?? '';
+  const testid = el.getAttribute('data-testid') ?? '';
+  const type = el.getAttribute('type') ?? '';
+  const role = el.getAttribute('role') ?? '';
+  const cls = (el.getAttribute('class') ?? '').slice(0, 40);
+  const hasSvg = el.querySelector('svg') ? '+svg' : '';
+  const parts = [tag];
+  if (testid) parts.push(`testid=${testid}`);
+  if (aria) parts.push(`aria=${aria}`);
+  if (type) parts.push(`type=${type}`);
+  if (role) parts.push(`role=${role}`);
+  if (cls) parts.push(`class=${cls}`);
+  if (hasSvg) parts.push(hasSvg);
+  return parts.join(' ');
+}
+
+/**
+ * 智能定位发送按钮：
+ *   1) 先试显式选择器（aria/testid）
+ *   2) 退化策略：从输入框向上找最近的、含按钮的容器，列出其中所有 button /
+ *      [role=button]，挑「最后一个且含 svg 图标」的作为候选（DeepSeek 的发送键
+ *      是输入框右下角的圆形箭头按钮）。
+ *   全程把扫描到的所有按钮特征打印到 console，便于据此固化选择器。
+ */
+function findSendButton(input: Element | null): { el: Element; detail: string } | null {
+  const explicit = findFirst(SEND_SELECTORS);
+  if (explicit) {
+    return { el: explicit.el, detail: `命中选择器：${explicit.selector}` };
+  }
+  if (!input) return null;
+
+  // 向上最多 6 层找一个同时包含输入框与按钮的容器
+  let container: Element | null = input.parentElement;
+  let buttons: Element[] = [];
+  for (let depth = 0; depth < 6 && container; depth += 1) {
+    const found = Array.from(
+      container.querySelectorAll('button, [role="button"]'),
+    );
+    if (found.length > 0) {
+      buttons = found;
+      break;
+    }
+    container = container.parentElement;
+  }
+
+  // 打印所有候选按钮特征，供固化选择器
+  // eslint-disable-next-line no-console
+  console.log(
+    '%c[DeepDesk 探针] 输入框附近扫描到的按钮：',
+    'color:#0a84ff;font-weight:600',
+  );
+  buttons.forEach((b, i) => {
+    // eslint-disable-next-line no-console
+    console.log(`  [${i}] ${describeEl(b)}`);
+  });
+
+  if (buttons.length === 0) return null;
+
+  // 启发式：优先 type=submit；否则取最后一个含 svg 的按钮
+  const submit = buttons.find((b) => b.getAttribute('type') === 'submit');
+  const withSvg = [...buttons].reverse().find((b) => b.querySelector('svg'));
+  const chosen = submit ?? withSvg ?? buttons[buttons.length - 1]!;
+  return { el: chosen, detail: `启发式命中：${describeEl(chosen)}` };
+}
+
 /**
  * 往输入框写入文字，并尽量让 React 等受控框架“感知”到变化。
  *
@@ -148,21 +216,29 @@ function writeIntoInput(el: Element, text: string): boolean {
 const state = {
   capturedChatResponse: false,
   lastCapturedUrl: '',
+  /** 记录所有观察到的 POST 请求 URL（去重），供诊断显示。 */
+  seenPostUrls: new Set<string>(),
   removeHook: null as null | (() => void),
 };
 
 function installFetchProbe(): void {
   if (state.removeHook) return;
+  // 放宽到「所有 POST 请求」：DeepSeek 的对话接口 URL 命名未知，先全量观察并
+  // 打印 URL，据此固化精确匹配。仍然只记录 URL，不读响应正文（合规）。
   state.removeHook = onResponse(
+    (req) => req.method === 'POST',
     (req) => {
+      state.seenPostUrls.add(req.url);
       const u = req.url.toLowerCase();
-      return CHAT_URL_HINTS.some((h) => u.includes(h));
-    },
-    (req) => {
-      // 仅记录“捕获到了”，绝不读取/转存响应正文（合规）。
-      state.capturedChatResponse = true;
-      state.lastCapturedUrl = req.url;
-      log.info(`P5 fetch hook captured a chat-like response: ${req.url}`);
+      const looksChat = CHAT_URL_HINTS.some((h) => u.includes(h));
+      if (looksChat) {
+        state.capturedChatResponse = true;
+        state.lastCapturedUrl = req.url;
+      }
+      // eslint-disable-next-line no-console
+      console.log(`%c[DeepDesk 探针] 捕获 POST ${looksChat ? '(疑似对话)' : ''}: ${req.url}`,
+        'color:#0a84ff');
+      log.info(`P5 fetch hook captured POST: ${req.url}`);
     },
   );
 }
@@ -202,23 +278,26 @@ function runProbes(): ProbeResult[] {
     results.push({ id: 'P3', label: '写入输入框', ok: false, detail: '无输入框，跳过' });
   }
 
-  // P4 定位发送按钮（仅定位）
-  const send = findFirst(SEND_SELECTORS);
+  // P4 定位发送按钮：先试显式选择器，再退化为「从输入框向上找容器内的按钮」。
+  const send = findSendButton(input?.el ?? null);
   results.push({
     id: 'P4',
     label: '定位发送按钮',
     ok: !!send,
-    detail: send ? `命中：${send.selector}` : '未命中（可能需手动发送验证 P5）',
+    detail: send ? send.detail : '未命中（已扫描输入框附近所有按钮，见 console）',
   });
 
   // P5 当前状态
+  const postCount = state.seenPostUrls.size;
   results.push({
     id: 'P5',
     label: '捕获对话响应',
     ok: state.capturedChatResponse,
     detail: state.capturedChatResponse
-      ? `已捕获：${state.lastCapturedUrl}`
-      : '尚未捕获（请手动发送一条消息后再点“重新检测”）',
+      ? `已捕获疑似对话：${state.lastCapturedUrl}`
+      : postCount > 0
+        ? `已捕获 ${postCount} 个 POST（见 console），但未识别出对话接口`
+        : '尚未捕获任何 POST（请手动发送一条消息后再点“重新检测”）',
   });
 
   return results;
