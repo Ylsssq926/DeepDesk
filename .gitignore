@@ -51,3 +51,6 @@ coverage/
 
 # Playwright 本地诊断的持久化 Chrome profile（含登录态，绝不入库）
 .pw-profile/
+
+# 调研脚本临时产物
+scripts/.tmp-*.json
