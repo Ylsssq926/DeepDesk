@@ -247,12 +247,10 @@ function installNetworkRecon(): void {
           /* ignore */
         }
         return new OrigES(url as string, init);
-      } as unknown as typeof EventSource;
+      } as unknown as { prototype: unknown };
+      // 继承原型链；CONNECTING/OPEN/CLOSED 是只读静态常量，无需（也不能）复制。
       PatchedES.prototype = OrigES.prototype;
-      PatchedES.CONNECTING = OrigES.CONNECTING;
-      PatchedES.OPEN = OrigES.OPEN;
-      PatchedES.CLOSED = OrigES.CLOSED;
-      window.EventSource = PatchedES;
+      window.EventSource = PatchedES as unknown as typeof EventSource;
       net.restorers.push(() => {
         window.EventSource = OrigES;
       });
