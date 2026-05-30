@@ -26,6 +26,8 @@ const log = createLogger('core:selectors');
 export type SelectorName =
   | 'chatInput'
   | 'messageList'
+  | 'messageItem'
+  | 'answerContent'
   | 'sidebar'
   | 'sendButton'
   | 'codeBlock'
@@ -33,23 +35,40 @@ export type SelectorName =
   | 'thinkingBlock';
 
 /**
- * 选择器版本化清单：每个 name 对应一个有序数组（新版在前）。
+ * 选择器版本化清单：每个 name 对应一个有序数组（最稳定/最新在前）。
  *
  * 注意：这里保存的字符串只是 querySelector 模板，并不会主动扫描业务文本。
+ *
+ * 数据来源：2026-05 通过 scripts/inspect-dom.mjs + inspect-send.mjs 在真实登录
+ * 页面实测得到的 DOM 结构。DeepSeek 使用稳定的 `ds-` 语义前缀类名
+ * （ds-markdown / ds-message / ds-virtual-list / ds-icon-button），比随机 hash
+ * 类（如 _52c986b）稳定得多，故作为首选锚点；hash 类作为兜底。
  */
 const SELECTORS: Readonly<Record<SelectorName, readonly string[]>> = {
   chatInput: [
-    '[data-testid="chat-input"]',
-    'textarea[placeholder*="Send a message"]',
+    'textarea[placeholder*="给 DeepSeek"]',
     'textarea[placeholder*="发送消息"]',
-    '.chat-input textarea',
+    'textarea[placeholder*="Message"]',
     '#chat-input',
+    '.ds-scroll-area textarea',
+    'textarea',
   ],
+  // 虚拟列表容器（所有消息的父容器）
   messageList: [
-    '[data-testid="message-list"]',
-    '[role="log"][aria-label*="message"]',
-    '.message-list',
-    'main [class*="messages-container"]',
+    '.ds-virtual-list-items',
+    '.ds-virtual-list',
+    '._765a5cd.ds-scroll-area',
+    '[role="log"]',
+    'main',
+  ],
+  // 单条消息块（用户 / 助手）
+  messageItem: ['.ds-message', '[class*="ds-message"]'],
+  // 助手回答的 markdown 正文（导出 / 转文件 / 追问的锚点）
+  answerContent: [
+    '.ds-markdown.ds-assistant-message-main-content',
+    '.ds-assistant-message-main-content',
+    '.ds-markdown',
+    '[class*="markdown"]',
   ],
   sidebar: [
     'nav[aria-label="Sidebar"]',
@@ -57,21 +76,23 @@ const SELECTORS: Readonly<Record<SelectorName, readonly string[]>> = {
     'aside[class*="sidebar"]',
     '.sidebar',
   ],
+  // 发送按钮：输入框右侧的圆形图标按钮（实测无 aria-label，靠 ds-icon-button + 位置）
   sendButton: [
     '[data-testid="send-button"]',
+    'div[role="button"][aria-label*="发送"]',
     'button[aria-label*="Send"]',
-    'button[aria-label*="发送"]',
+    '.ds-icon-button._52c986b',
   ],
-  codeBlock: ['pre > code'],
+  codeBlock: ['.ds-markdown pre > code', 'pre > code', 'pre'],
   mermaidCodeBlock: [
     'pre > code.language-mermaid',
     'pre > code[class*="language-mermaid"]',
     'pre[data-language="mermaid"] > code',
   ],
   thinkingBlock: [
-    '[data-testid="thinking-chain"]',
-    'div[class*="thinking-chain"]',
+    '[class*="thinking"]',
     'div[class*="reasoning"]',
+    '[class*="chain-of-thought"]',
   ],
 };
 

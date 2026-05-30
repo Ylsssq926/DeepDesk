@@ -48,3 +48,6 @@ coverage/
 .pnpm-store/
 .cache/
 *.tsbuildinfo
+
+# Playwright 本地诊断的持久化 Chrome profile（含登录态，绝不入库）
+.pw-profile/
