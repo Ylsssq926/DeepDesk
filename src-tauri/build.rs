@@ -71,14 +71,23 @@ fn main() {
         fs::create_dir_all(icons_dir).expect("failed to create icons directory");
     }
 
-    let svg_path = PathBuf::from("../assets/brand/logo.svg");
-    println!("cargo:rerun-if-changed={}", svg_path.display());
-
-    if let Err(err) = render_brand_icons(&svg_path, icons_dir) {
-        println!(
-            "cargo:warning=DeepDesk icon rendering failed: {err}. Falling back to minimal placeholders."
-        );
-        ensure_icon_placeholders(icons_dir);
+    // 优先使用已入库的真实图标（由 `tauri icon assets/brand/logo.jpg` 生成并提交）。
+    // 只要 icon.ico 存在就认为图标齐备，构建期不再用 SVG 渲染覆盖——这样图标稳定、
+    // 可控、可审阅，且不依赖 resvg 对内嵌位图 SVG 的渲染能力。
+    // 仅当 icons/ 为空（如全新克隆未生成图标）时，才退化为 SVG 渲染 / 最小占位兜底，
+    // 保证 CI 与首次构建永不因缺图标而失败。
+    let real_icon = icons_dir.join("icon.ico");
+    if real_icon.exists() && fs::metadata(&real_icon).map(|m| m.len() > 1024).unwrap_or(false) {
+        println!("cargo:warning=using committed real icons in src-tauri/icons/ (skip SVG render)");
+    } else {
+        let svg_path = PathBuf::from("../assets/brand/logo.svg");
+        println!("cargo:rerun-if-changed={}", svg_path.display());
+        if let Err(err) = render_brand_icons(&svg_path, icons_dir) {
+            println!(
+                "cargo:warning=DeepDesk icon rendering failed: {err}. Falling back to minimal placeholders."
+            );
+            ensure_icon_placeholders(icons_dir);
+        }
     }
 
     tauri_build::build()
