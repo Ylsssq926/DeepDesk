@@ -29,6 +29,7 @@ export type EnhancerName =
   | 'auto-retry'
   | 'debug-indicator'
   | 'probe'
+  | 'intent-chips'
   | 'fetch-interceptor'
   | 'xhr-interceptor';
 
