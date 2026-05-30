@@ -77,7 +77,11 @@ fn main() {
     // 仅当 icons/ 为空（如全新克隆未生成图标）时，才退化为 SVG 渲染 / 最小占位兜底，
     // 保证 CI 与首次构建永不因缺图标而失败。
     let real_icon = icons_dir.join("icon.ico");
-    if real_icon.exists() && fs::metadata(&real_icon).map(|m| m.len() > 1024).unwrap_or(false) {
+    if real_icon.exists()
+        && fs::metadata(&real_icon)
+            .map(|m| m.len() > 1024)
+            .unwrap_or(false)
+    {
         println!("cargo:warning=using committed real icons in src-tauri/icons/ (skip SVG render)");
     } else {
         let svg_path = PathBuf::from("../assets/brand/logo.svg");
